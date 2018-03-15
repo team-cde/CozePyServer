@@ -36,7 +36,7 @@ def trigger_coze():
 def get_next_coze_time():
     print("enter get_next_coze_time")
 
-    retval = {'next_coze_time':cu.next_coze_utc.astimezone().isoformat()}
+    retval = {'coze_state':cu.get_state(), 'next_coze_time':cu.next_coze_utc.astimezone().isoformat()}
     print(retval)
     return json.dumps(retval), 200, {'ContentType':'application/json'}
 

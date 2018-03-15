@@ -60,8 +60,8 @@ class CozeUtilities:
         print("enter CozeUtilites::end_coze")
         self.active_users = []
         self.matched_users = {}
-        self.coze_state = "waiting"
         self.setup_next_coze()
+        self.coze_state = "waiting"
 
     def setup_next_coze(self):
         now = datetime.now()
@@ -96,7 +96,11 @@ class CozeUtilities:
         tnow = time.time()
         coze_sched_time = time.mktime(start_time.timetuple())
         coze_start_delay = coze_sched_time - tnow + 1
-        coze_end_delay = coze_sched_time + self.coze_duration_minutes * 60 - tnow + 1
+        #coze_end_delay = coze_sched_time + self.coze_duration_minutes * 60 - tnow + 1
+        # This signals the end of the matching period, not the call. This should
+        # really be pub-sub or something but it works for now
+        # 10 seconds should be enough time for all matchings to happen and calls to start
+        coze_end_delay = coze_start_delay + 10
 
         self.coze_start_event = Timer(coze_start_delay, self.start_coze, ()).start()
         self.coze_end_event = Timer(coze_end_delay, self.end_coze, ()).start()
