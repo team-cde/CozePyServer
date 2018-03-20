@@ -102,5 +102,10 @@ class CozeUtilities:
         # 10 seconds should be enough time for all matchings to happen and calls to start
         coze_end_delay = coze_start_delay + 10
 
-        self.coze_start_event = Timer(coze_start_delay, self.start_coze, ()).start()
-        self.coze_end_event = Timer(coze_end_delay, self.end_coze, ()).start()
+        self.coze_start_event = Timer(coze_start_delay, self.start_coze, ())
+        self.coze_start_event.daemon = True
+        self.coze_end_event = Timer(coze_end_delay, self.end_coze, ())
+        self.coze_end_event.daemon = True
+	
+        self.coze_start_event.start()
+        self.coze_end_event.start()
