@@ -46,26 +46,24 @@ def ready_for_coze():
     print("enter ready_for_coze")
 
     user_data = request.args
-    cu.add_user(user_data["webrtc_id"])
+    cu.add_user(user_data["webrtc_id"], user_data["user_id"])
     return json.dumps({'success':True}), 200, {'ContentType':'application/json'}
 
 # Client requests their partner's ID
-# Only one client per coze will receive the partner ID to make the call
+# Only one client per coze will receive "is_caller":1
 # to save some time and avoid 2 users calling each other simultaneously
 @app.route("/get_match", methods=["GET"])
 def get_match():
     print("enter get_match")
 
     user_data = request.args
-    user_id = user_data["webrtc_id"]
-    partner_id = cu.get_match(user_id)
-
-    retval = {'coze_state':cu.get_state(), 'partner_id':partner_id}
-    return json.dumps(retval), 200, {'ContentType':'application/json'}
+    user_id = user_data["user_id"]
+    match = cu.get_match(user_id)
+    return json.dumps(match), 200, {'ContentType':'application/json'}
 
 
 if __name__ == "__main__":
     port = 5000
     if len(sys.argv) > 1:
         port = int(sys.argv[1])
-    app.run(host="0.0.0.0", port=port, debug=True)
+    app.run(host="0.0.0.0", port=port, debug=False)

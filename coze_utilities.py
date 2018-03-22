@@ -7,7 +7,7 @@ from datetime import datetime, timezone, timedelta
 class CozeUtilities:
 
     def __init__(self):
-        self.active_users = []
+        self.active_users = {}
         self.matched_users = {}
         self.coze_state = "waiting"
         self.coze_start_event = None
@@ -19,8 +19,8 @@ class CozeUtilities:
         self.next_coze = None
         self.next_coze_utc = None
 
-    def add_user(self, user_id):
-        self.active_users.append(user_id)
+    def add_user(self, webrtc_id, user_id):
+        self.active_users[user_id] = webrtc_id
 
     def start_coze(self):
         print("enter CozeUtilites::start_coze")
@@ -29,36 +29,48 @@ class CozeUtilities:
         self.match_users()
 
     # Match ID's
+    # TODO: This can probably be done a lot smarter eventually
     def match_users(self):
-        self.active_users = list(set(self.active_users))
+        #self.active_users = list(set(self.active_users))
         print("Active Users:")
         print(self.active_users)
-        random.shuffle(self.active_users)
-        num_users = len(self.active_users)
+        active_user_ids = list(self.active_users.keys())
+        random.shuffle(active_user_ids)
+
+        num_users = len(active_user_ids)
 
         # If there is an odd number of people, someone needs to get shafted
+        # TODO: Can we make this better?
         if num_users % 2 > 0:
             num_users -= 1
-            self.matched_users[self.active_users[-1]] = -1
+            self.matched_users[active_user_ids[-1]] = {}
 
         for i in range(0, num_users, 2):
-            self.matched_users[self.active_users[i]] = self.active_users[i+1]
+            a_user_id = active_user_ids[i]
+            b_user_id = active_user_ids[i+1]
+            a_webrtc_id = self.active_users[a_user_id]
+            b_webrtc_id = self.active_users[b_user_id]
+            self.matched_users[a_user_id] = {"is_caller":1,
+                "partner_user_id":b_user_id, "partner_webrtc_id":b_webrtc_id}
+            self.matched_users[b_user_id] = {"is_caller":0,
+                "partner_user_id":a_user_id, "partner_webrtc_id":a_webrtc_id}
 
         self.coze_state = "matched"
         print(self.matched_users)
 
     def get_match(self, user_id):
-        partner_id = -1
+        match = {}
         if user_id in self.matched_users:
-            partner_id = self.matched_users[user_id]
-        return partner_id
+            match = self.matched_users[user_id]
+        match['coze_state'] = self.coze_state
+        return match
 
     def get_state(self):
         return self.coze_state
 
     def end_coze(self):
         print("enter CozeUtilites::end_coze")
-        self.active_users = []
+        self.active_users = {}
         self.matched_users = {}
         self.setup_next_coze()
         self.coze_state = "waiting"
@@ -106,6 +118,6 @@ class CozeUtilities:
         self.coze_start_event.daemon = True
         self.coze_end_event = Timer(coze_end_delay, self.end_coze, ())
         self.coze_end_event.daemon = True
-	
+
         self.coze_start_event.start()
         self.coze_end_event.start()
